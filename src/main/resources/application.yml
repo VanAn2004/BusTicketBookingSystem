@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/busticketdb
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: vananyongie888@gmail.com
+    password: "mwfz dupj treo nnqd"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  signerKey: "7b690d90e890f3f77df4150849c9b715740347968babaee859263c2b083f7620"
+  valid-duration: 3600          # 1 gi?
+  refreshable-duration: 360000  # ~100 gi?
