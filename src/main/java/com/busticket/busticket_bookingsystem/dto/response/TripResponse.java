@@ -14,6 +14,5 @@ public class TripResponse {
     private LocalDateTime departureTime;
     private double price;
     private int availableSeats;
-    private String busLicensePlate;
+    private BusResponse bus; // 🔥 thay vì chỉ có licensePlate
 }
-

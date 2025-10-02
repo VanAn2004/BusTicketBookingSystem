@@ -23,37 +23,45 @@ public class TripController {
 
     TripService tripService;
 
-    /**
-     * Tạo chuyến xe mới
-     */
     @PostMapping
     @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
     public ApiResponse<TripResponse> createTrip(@RequestBody CreateTripRequest request) {
         var result = tripService.createTrip(request);
-        return ApiResponse.<TripResponse>builder()
-                .result(result)
-                .build();
+        return ApiResponse.<TripResponse>builder().result(result).build();
     }
 
-    /**
-     * Lọc chuyến theo điều kiện (tuyến, giá, số ghế trống)
-     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
+    public ApiResponse<TripResponse> updateTrip(@PathVariable String id, @RequestBody CreateTripRequest request) {
+        var result = tripService.updateTrip(id, request);
+        return ApiResponse.<TripResponse>builder().result(result).build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
+    public ApiResponse<Void> deleteTrip(@PathVariable String id) {
+        tripService.deleteTrip(id);
+        return ApiResponse.<Void>builder().message("Trip deleted successfully").build();
+    }
+
     @GetMapping("/filter")
     public ApiResponse<List<TripResponse>> filterTrips(FilterTripRequest request) {
         var result = tripService.filterTrips(request);
+        return ApiResponse.<List<TripResponse>>builder().result(result).build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<TripResponse> getTripById(@PathVariable String id) {
+        var result = tripService.getTripById(id);
+        return ApiResponse.<TripResponse>builder().result(result).build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<TripResponse>> getAllTrips() {
+        var result = tripService.getAllTrips();
         return ApiResponse.<List<TripResponse>>builder()
                 .result(result)
                 .build();
     }
 
-    /**
-     * Xem chi tiết chuyến
-     */
-    @GetMapping("/{id}")
-    public ApiResponse<TripResponse> getTripById(@PathVariable String id) {
-        var result = tripService.getTripById(id);
-        return ApiResponse.<TripResponse>builder()
-                .result(result)
-                .build();
-    }
 }
