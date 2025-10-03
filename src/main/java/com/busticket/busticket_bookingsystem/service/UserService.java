@@ -40,24 +40,24 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // tìm role theo roleName
+        // tìm role
         Role role = roleRepository.findByName(request.getRoleName())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
 
-        user.setRole(role);
+        user.setRole(role); // role embed vào user
         user.setCreateAt(LocalDateTime.now());
         user.setIsActive(true);
 
         try {
             userRepository.save(user);
-        } catch (DuplicateKeyException ex) { // MongoDB báo lỗi trùng unique key
+        } catch (DuplicateKeyException ex) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
-        var result = userMapper.toUserResponse(user);
-        result.setRoleName(role.getName());
-        return result;
+        return userMapper.toUserResponse(user);
     }
+
+
 
     /**
      * Lấy thông tin user hiện tại từ SecurityContext
