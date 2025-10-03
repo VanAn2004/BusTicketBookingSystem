@@ -27,6 +27,6 @@ public class User {
     LocalDateTime createAt;
     Boolean isActive;
 
-    @DBRef
+
     Role role;   // tham chiếu tới collection Role
 }

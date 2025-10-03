@@ -24,28 +24,30 @@ public class ApplicationConfiguration {
     @Bean
     ApplicationRunner runner(UserRepository userRepository) {
         return args -> {
-            // Tạo role mặc định
-            Role adminRole = roleRepository.save(
-                    Role.builder()
-                            .name(RoleEnum.ADMIN.name())
-                            .description("admin Role")
-                            .build()
-            );
+            // Tạo role mặc định (chỉ tạo nếu chưa có)
+            Role adminRole = roleRepository.findByName(RoleEnum.ADMIN.name())
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name(RoleEnum.ADMIN.name())
+                                    .description("admin Role")
+                                    .build()
+                    ));
 
-            Role customerRole = roleRepository.save(
-                    Role.builder()
-                            .name(RoleEnum.CUSTOMER.name())
-                            .description("customer Role")
-                            .build()
-            );
+            Role customerRole = roleRepository.findByName(RoleEnum.CUSTOMER.name())
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name(RoleEnum.CUSTOMER.name())
+                                    .description("customer Role")
+                                    .build()
+                    ));
 
-            Role operatorRole = roleRepository.save(
-                    Role.builder()
-                            .name(RoleEnum.OPERATOR.name())
-                            .description("operator Role")
-                            .build()
-            );
-
+            Role operatorRole = roleRepository.findByName(RoleEnum.OPERATOR.name())
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name(RoleEnum.OPERATOR.name())
+                                    .description("operator Role")
+                                    .build()
+                    ));
 
             // Tạo user admin mặc định
             if (userRepository.findByUserName("admin").isEmpty()) {
@@ -71,7 +73,7 @@ public class ApplicationConfiguration {
                         .lastName("1")
                         .isActive(true)
                         .build();
-                userRepository.save(customer); // FIXED
+                userRepository.save(customer);
                 log.info("✅ Customer user created with default username/password: customer1/customer1");
             }
 
@@ -85,7 +87,7 @@ public class ApplicationConfiguration {
                         .lastName("1")
                         .isActive(true)
                         .build();
-                userRepository.save(operator); // FIXED
+                userRepository.save(operator);
                 log.info("✅ Operator user created with default username/password: operator1/operator1");
             }
         };
