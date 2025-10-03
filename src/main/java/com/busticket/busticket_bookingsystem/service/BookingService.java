@@ -1,7 +1,9 @@
 package com.busticket.busticket_bookingsystem.service;
 
+import com.busticket.busticket_bookingsystem.entity.Trip;
 import com.busticket.busticket_bookingsystem.entity.booking.Booking;
 import com.busticket.busticket_bookingsystem.repository.BookingRepository;
+import com.busticket.busticket_bookingsystem.repository.TripRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +14,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingService {
     private final BookingRepository bookingRepo;
+    private final TripRepository tripRepo;
 
     public Booking create(String userId, String tripId, int seatCount) {
-        if (seatCount <= 0) throw new IllegalArgumentException("seatCount must be > 0");
+        if (seatCount <= 0) {
+            throw new IllegalArgumentException("seatCount must be > 0");
+        }
 
+        // Lấy trip ra để check ghế
+        Trip trip = tripRepo.findById(tripId)
+                .orElseThrow(() -> new RuntimeException("Trip not found"));
+
+        if (trip.getAvailableSeats() < seatCount) {
+            throw new RuntimeException("Not enough seats available");
+        }
+
+        // Trừ ghế
+        trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
+        tripRepo.save(trip);
+
+        // Tạo booking
         Booking bk = Booking.builder()
                 .userId(userId)
                 .tripId(tripId)
@@ -23,6 +41,7 @@ public class BookingService {
                 .status("RESERVED")
                 .createdAt(Instant.now())
                 .build();
+
         return bookingRepo.save(bk);
     }
 
@@ -33,11 +52,20 @@ public class BookingService {
     public void cancel(String bookingId, String userId) {
         Booking bk = bookingRepo.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
-        if (!bk.getUserId().equals(userId))
+
+        if (!bk.getUserId().equals(userId)) {
             throw new RuntimeException("Not your booking");
+        }
+
         if (!"CANCELED".equals(bk.getStatus())) {
             bk.setStatus("CANCELED");
             bookingRepo.save(bk);
+
+            // Hoàn lại ghế cho trip
+            Trip trip = tripRepo.findById(bk.getTripId())
+                    .orElseThrow(() -> new RuntimeException("Trip not found"));
+            trip.setAvailableSeats(trip.getAvailableSeats() + bk.getSeatCount());
+            tripRepo.save(trip);
         }
     }
 }
