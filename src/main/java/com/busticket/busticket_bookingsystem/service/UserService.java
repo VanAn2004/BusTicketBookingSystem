@@ -35,16 +35,55 @@ public class UserService {
     /**
      * Tạo user mới
      */
+    /**
+     * Tạo user mới với các ràng buộc
+     */
     public UserResponse createUser(CreateUserRequest request) {
-        User user = userMapper.toUser(request);
+        // Validate username
+        if (request.getUserName() == null || !request.getUserName().matches("^[a-zA-Z0-9_]{4,20}$")) {
+            throw new AppException(ErrorCode.USERNAME_INVALID);
+        }
+        userRepository.findByUserName(request.getUserName())
+                .ifPresent(existing -> {
+                    throw new AppException(ErrorCode.USERNAME_EXISTED);
+                });
 
+        // Validate email
+        if (request.getEmail() == null || !request.getEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new AppException(ErrorCode.INVALID_EMAIL);
+        }
+        userRepository.findByEmail(request.getEmail())
+                .ifPresent(existing -> {
+                    throw new AppException(ErrorCode.EMAIL_EXISTED);
+                });
+
+        // Validate phone (nếu có)
+        if (request.getPhone() != null) {
+            if (!request.getPhone().matches("^(0\\d{9}|\\+84\\d{9})$")) {
+                throw new AppException(ErrorCode.INVALID_PHONE);
+            }
+            userRepository.findByPhone(request.getPhone())
+                    .ifPresent(existing -> {
+                        throw new AppException(ErrorCode.PHONE_EXISTED);
+                    });
+        }
+
+        // Validate password
+        if (request.getPassword() == null ||
+                !request.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        // Tạo entity từ request
+        User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // tìm role
-        Role role = roleRepository.findByName(request.getRoleName())
+        // Gán role (nếu không có thì mặc định USER)
+        String roleName = request.getRoleName() != null ? request.getRoleName() : "USER";
+        Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        user.setRole(role);
 
-        user.setRole(role); // role embed vào user
         user.setCreateAt(LocalDateTime.now());
         user.setIsActive(true);
 
@@ -56,6 +95,7 @@ public class UserService {
 
         return userMapper.toUserResponse(user);
     }
+
 
 
 

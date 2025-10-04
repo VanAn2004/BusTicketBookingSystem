@@ -24,3 +24,7 @@ jwt:
   signerKey: "7b690d90e890f3f77df4150849c9b715740347968babaee859263c2b083f7620"
   valid-duration: 3600          # 1 gi?
   refreshable-duration: 360000  # ~100 gi?
+
+
+frontend:
+  url: http://localhost:5173
