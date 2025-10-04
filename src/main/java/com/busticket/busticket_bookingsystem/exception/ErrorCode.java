@@ -28,6 +28,11 @@ public enum ErrorCode {
     PHONE_EXISTED( 1016,"Số điện thoại đã tồn tại ",HttpStatus.BAD_REQUEST),
     USERNAME_EXISTED(1017,"Tên đăng nhập đã tồn tại",HttpStatus.BAD_REQUEST),
     USER_HAD_BANNED(1014,"Tài khoản của bạn đã bị khoá", HttpStatus.BAD_REQUEST),
+
+    // 🔥 Thêm mới các ràng buộc validate
+    INVALID_EMAIL(1016, "Email không hợp lệ", HttpStatus.BAD_REQUEST),
+    INVALID_PHONE(1017, "Số điện thoại không hợp lệ", HttpStatus.BAD_REQUEST);
+
     ;
 
     int code;

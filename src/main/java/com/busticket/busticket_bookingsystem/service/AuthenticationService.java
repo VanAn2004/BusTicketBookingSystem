@@ -40,6 +40,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+
+
+
 public class AuthenticationService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
@@ -57,6 +60,11 @@ public class AuthenticationService {
     @NonFinal
     @Value("${jwt.refreshable-duration}")
     protected long REFRESHABLE_DURATION;
+
+    @NonFinal
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
 
     public AuthResponse authenticate(AuthRequest authRequest){
         var user = userRepository.findByUserName(authRequest.getUserName())
@@ -206,7 +214,10 @@ public class AuthenticationService {
     }
 
     private void sendResetEmail(String email, String token) {
-        try{
+        try {
+            // ✅ Tạo link reset theo cổng FE (5173)
+            String resetLink = frontendUrl + "/reset-password?token=" + token;
+
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
             helper.setTo(email);
@@ -223,7 +234,7 @@ public class AuthenticationService {
                             "<p style=\"color: #444; line-height: 1.5;\">Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Liên kết dưới đây sẽ giúp bạn tạo mật khẩu mới.</p>" +
 
                             "<div style=\"text-align: center; margin: 30px 0;\">" +
-                            "<a href=\"http://localhost:3000/reset-password?token=" + token + "\" style=\"background-color: #4361ee; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3);\">Đặt Lại Mật Khẩu</a>" +
+                            "<a href=\"" + resetLink + "\" style=\"background-color: #4361ee; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3);\">Đặt Lại Mật Khẩu</a>" +
                             "</div>" +
 
                             "<p style=\"color: #444; line-height: 1.5;\">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này hoặc liên hệ đội hỗ trợ của chúng tôi.</p>" +
@@ -235,13 +246,13 @@ public class AuthenticationService {
 
                             "<div style=\"text-align: center; padding-top: 15px; border-top: 2px solid #f2f2f2; font-size: 14px; color: #888;\">" +
                             "<p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi!</p>" +
-                            "<p style=\"margin-top: 5px;\">© " + new Date().getYear() + " 22DTHD5`- Mọi quyền được bảo lưu</p>" +
+                            "<p style=\"margin-top: 5px;\">© " + new Date().getYear() + " 22DTHD5 - Mọi quyền được bảo lưu</p>" +
                             "</div>" +
                             "</div>",
                     true
             );
             mailSender.send(mimeMessage);
-        }catch (MessagingException e){
+        } catch (MessagingException e) {
             log.error("Error sending email: {}", e.getMessage());
         }
     }

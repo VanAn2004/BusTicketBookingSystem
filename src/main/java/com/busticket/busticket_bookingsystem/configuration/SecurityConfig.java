@@ -1,3 +1,4 @@
+
 package com.busticket.busticket_bookingsystem.configuration;
 
 import org.springframework.context.annotation.Bean;
@@ -40,9 +41,9 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request ->
                 request.requestMatchers(PUBLIC_ENDPOINTS)
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwtConfigurer -> jwtConfigurer
@@ -52,7 +53,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.cors().configurationSource(cors ->{
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000"));
+            corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
             corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             corsConfiguration.setAllowedHeaders(List.of("*"));
             corsConfiguration.setAllowCredentials(true);
