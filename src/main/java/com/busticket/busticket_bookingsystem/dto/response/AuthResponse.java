@@ -12,4 +12,7 @@ public class AuthResponse {
     String userName;
     String token;
     boolean authenticated;
+
+    //google - facebook
+    UserResponse user; // ✅ thêm để trả về thông tin user
 }

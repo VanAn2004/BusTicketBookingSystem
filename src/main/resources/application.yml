@@ -27,4 +27,5 @@ jwt:
 
 
 frontend:
-  url: http://localhost:5173
+  url: https://localhost:3000
+
