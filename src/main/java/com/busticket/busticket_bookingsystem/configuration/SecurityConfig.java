@@ -27,7 +27,9 @@ public class SecurityConfig {
             "/auth/refresh",
             "/auth/forgot-password",
             "/auth/reset-password/**",
-            "/room/**"
+            "/room/**",
+
+            "/auth/oauth/**"
     };
 
     private final CustomJwtDecoder customJwtDecoder;
@@ -52,7 +54,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.cors().configurationSource(cors ->{
             CorsConfiguration corsConfiguration = new CorsConfiguration();
-            corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:5173") );
+            corsConfiguration.setAllowedOrigins(List.of("https://localhost:3000","https://localhost:3001","http://localhost:5173","http://localhost:3000") );
             corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             corsConfiguration.setAllowedHeaders(List.of("*"));
             corsConfiguration.setAllowCredentials(true);

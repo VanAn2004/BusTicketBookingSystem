@@ -13,6 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
+
+
 
 @RestController
 @RequestMapping("/auth")
@@ -62,4 +66,22 @@ public class AuthController {
                 .build();
     }
 
+
+    @PostMapping("/oauth/google")
+    public ApiResponse<AuthResponse> loginWithGoogle(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        var result = authenticationService.loginWithGoogle(token);
+        return ApiResponse.<AuthResponse>builder()
+                .result(result)
+                .build();
+    }
+
+    @PostMapping("/oauth/facebook")
+    public ApiResponse<AuthResponse> loginWithFacebook(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        var result = authenticationService.loginWithFacebook(token);
+        return ApiResponse.<AuthResponse>builder()
+                .result(result)
+                .build();
+    }
 }

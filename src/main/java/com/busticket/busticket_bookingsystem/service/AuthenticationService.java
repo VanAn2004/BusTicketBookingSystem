@@ -1,7 +1,7 @@
 package com.busticket.busticket_bookingsystem.service;
 
 import com.busticket.busticket_bookingsystem.dto.request.*;
-import com. busticket.busticket_bookingsystem.dto.response.AuthResponse;
+import com.busticket.busticket_bookingsystem.dto.response.AuthResponse;
 import com.busticket.busticket_bookingsystem.dto.response.IntrospectResponse;
 import com.busticket.busticket_bookingsystem.entity.identity.InvalidatedToken;
 import com.busticket.busticket_bookingsystem.entity.identity.ResetToken;
@@ -11,6 +11,8 @@ import com.busticket.busticket_bookingsystem.exception.ErrorCode;
 import com.busticket.busticket_bookingsystem.repository.InvalidatedTokenRepository;
 import com.busticket.busticket_bookingsystem.repository.ResetTokenRepository;
 import com.busticket.busticket_bookingsystem.repository.UserRepository;
+import com.busticket.busticket_bookingsystem.repository.RoleRepository;
+
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -36,6 +38,16 @@ import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import java.util.Map;
+
+import com.busticket.busticket_bookingsystem.entity.identity.Role;
+import com.busticket.busticket_bookingsystem.dto.response.UserResponse;
+import com.busticket.busticket_bookingsystem.mapper.UserMapper;
+
+
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,6 +58,10 @@ public class AuthenticationService {
     InvalidatedTokenRepository tokenRepository;
     JavaMailSender mailSender;
     ResetTokenRepository resetTokenRepository;
+    RoleRepository roleRepository;
+    UserMapper userMapper;
+
+
     @NonFinal
     @Value("${jwt.signerKey}")
     protected String SIGN_KEY;
@@ -61,7 +77,6 @@ public class AuthenticationService {
     @NonFinal
     @Value("${frontend.url}")
     private String frontendUrl;
-
 
     public AuthResponse authenticate(AuthRequest authRequest){
         var user = userRepository.findByUserName(authRequest.getUserName())
@@ -251,6 +266,100 @@ public class AuthenticationService {
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
             log.error("Error sending email: {}", e.getMessage());
+        }
+    }
+
+    public AuthResponse loginWithGoogle(String token) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            // Gọi Google để lấy thông tin user
+            String url = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
+            Map<String, Object> body = restTemplate.getForObject(url, Map.class);
+
+            String email = (String) body.get("email");
+            String name = (String) body.get("name");
+
+            if (email == null) {
+                throw new RuntimeException("Không lấy được email từ Google token");
+            }
+
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                // Tạo user mới nếu chưa có
+                Role role = roleRepository.findByName("CUSTOMER")
+                        .orElseThrow(() -> new RuntimeException("Role CUSTOMER not found"));
+                User newUser = User.builder()
+                        .userName(email)
+                        .email(email)
+                        .firstName(name)
+                        .role(role)
+                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .build();
+                return userRepository.save(newUser);
+            });
+
+            // 🔥 Đổi dòng này
+            String jwt = generateToken(user);
+
+            return AuthResponse.builder()
+                    .token(jwt)
+                    .authenticated(true)
+                    .userName(user.getUserName())
+                    .user(userMapper.toUserResponse(user))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Google login error: {}", e.getMessage());
+            throw new RuntimeException("Đăng nhập Google thất bại: " + e.getMessage());
+        }
+    }
+
+
+
+    public AuthResponse loginWithFacebook(String token) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://graph.facebook.com/me?fields=id,name,email&access_token=" + token;
+            Map<String, Object> body = restTemplate.getForObject(url, Map.class);
+
+            String email = (String) body.get("email");
+            String name = (String) body.get("name");
+            String id = (String) body.get("id");
+
+            // fallback nếu Facebook không trả email
+            if (email == null || email.isEmpty()) {
+                email = id + "@facebook.com";
+            }
+
+            final String finalEmail = email;
+            final String finalName = name;
+
+            User user = userRepository.findByEmail(finalEmail).orElseGet(() -> {
+                Role role = roleRepository.findByName("CUSTOMER")
+                        .orElseThrow(() -> new RuntimeException("Role CUSTOMER not found"));
+                User newUser = User.builder()
+                        .userName(finalEmail)
+                        .email(finalEmail)
+                        .firstName(finalName)
+                        .role(role)
+                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .build();
+                return userRepository.save(newUser);
+            });
+
+
+            // 🔥 Đổi dòng này
+            String jwt = generateToken(user);
+
+            return AuthResponse.builder()
+                    .token(jwt)
+                    .authenticated(true)
+                    .userName(user.getUserName())
+                    .user(userMapper.toUserResponse(user))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Facebook login error: {}", e.getMessage());
+            throw new RuntimeException("Đăng nhập Facebook thất bại: " + e.getMessage());
         }
     }
 }
