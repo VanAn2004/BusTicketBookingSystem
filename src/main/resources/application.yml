@@ -1,5 +1,11 @@
 server:
   port: 8080
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: 123456
+    key-store-type: PKCS12
+    key-alias: spring-boot-ssl  # Thêm alias khớp với kết quả keytool
   servlet:
     context-path: /api/v1
 
@@ -22,10 +28,17 @@ spring:
 
 jwt:
   signerKey: "7b690d90e890f3f77df4150849c9b715740347968babaee859263c2b083f7620"
-  valid-duration: 3600          # 1 gi?
-  refreshable-duration: 360000  # ~100 gi?
+  valid-duration: 3600          # 1 giờ
+  refreshable-duration: 360000  # ~100 giờ
 
 
 frontend:
   url: https://localhost:3000
 
+authentication:
+  facebook:
+    app-id: 1204664654750903
+    app-secret: 5a78e9dd976c339ed4dcb8b29408f737
+  google:
+    client-id: 694822786909-p6h0ei61mh8t82irnli0sffcemf0mm50.apps.googleusercontent.com
+    client-secret: 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

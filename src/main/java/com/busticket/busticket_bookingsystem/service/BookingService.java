@@ -4,6 +4,7 @@ import com.busticket.busticket_bookingsystem.entity.Trip;
 import com.busticket.busticket_bookingsystem.entity.booking.Booking;
 import com.busticket.busticket_bookingsystem.repository.BookingRepository;
 import com.busticket.busticket_bookingsystem.repository.TripRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.List;
 public class BookingService {
     private final BookingRepository bookingRepo;
     private final TripRepository tripRepo;
+    private final SimpMessagingTemplate messagingTemplate; // thêm dòng này
 
     public Booking create(String userId, String tripId, int seatCount) {
         if (seatCount <= 0) {
@@ -32,6 +34,9 @@ public class BookingService {
         // Trừ ghế
         trip.setAvailableSeats(trip.getAvailableSeats() - seatCount);
         tripRepo.save(trip);
+
+        // Gửi cập nhật real-time cho client khác
+        messagingTemplate.convertAndSend("/topic/trips/" + tripId, trip);
 
         // Tạo booking
         Booking bk = Booking.builder()
@@ -66,6 +71,9 @@ public class BookingService {
                     .orElseThrow(() -> new RuntimeException("Trip not found"));
             trip.setAvailableSeats(trip.getAvailableSeats() + bk.getSeatCount());
             tripRepo.save(trip);
+
+            // Gửi lại cập nhật
+            messagingTemplate.convertAndSend("/topic/trips/" + bk.getTripId(), trip);
         }
     }
 }
