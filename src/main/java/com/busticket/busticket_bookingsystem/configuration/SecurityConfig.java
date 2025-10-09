@@ -36,7 +36,9 @@ public class SecurityConfig {
             "/auth/forgot-password",
             "/auth/reset-password/**",
             "/room/**",
-            "/auth/oauth/**"
+            "/auth/oauth/**",
+
+            "/ws/**"
     };
 
     private final CustomJwtDecoder customJwtDecoder;
@@ -48,6 +50,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(PUBLIC_ENDPOINTS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
@@ -56,7 +60,6 @@ public class SecurityConfig {
                                 .decoder(customJwtDecoder)
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(new JWTAuthenticationEntryPoint()))
-                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         // ✅ Thêm filter để bỏ COOP/COEP, giúp Google/Facebook popup hoạt động
@@ -80,7 +83,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // ✅ Xóa header COOP/COEP để cho phép window.postMessage hoạt động
+    // Xóa header COOP/COEP để cho phép window.postMessage hoạt động
     @Bean
     public OncePerRequestFilter removeCrossOriginIsolationHeaders() {
         return new OncePerRequestFilter() {

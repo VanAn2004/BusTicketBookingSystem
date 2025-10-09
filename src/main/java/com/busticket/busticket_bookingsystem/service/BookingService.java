@@ -16,7 +16,7 @@ import java.util.List;
 public class BookingService {
     private final BookingRepository bookingRepo;
     private final TripRepository tripRepo;
-    private final SimpMessagingTemplate messagingTemplate; // thêm dòng này
+    private final SimpMessagingTemplate messagingTemplate;
 
     public Booking create(String userId, String tripId, int seatCount) {
         if (seatCount <= 0) {
