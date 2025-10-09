@@ -9,13 +9,14 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map; // ✅ CẦN THÊM DÒNG IMPORT NÀY
 
 @Service
 @RequiredArgsConstructor
 public class BusService {
 
     private final BusRepository busRepository;
-    private final TripRepository tripRepository; // ✅ thêm dòng này
+    private final TripRepository tripRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ✅ Tạo bus mới + gửi real-time
@@ -60,7 +61,7 @@ public class BusService {
             }
 
             tripRepository.save(trip);
-            messagingTemplate.convertAndSend("/topic/trips/" + trip.getId(), trip); // 🔥 gửi tới từng trip cụ thể
+            messagingTemplate.convertAndSend("/topic/trips/" + trip.getId(), trip);
         }
 
         // 🔹 Gửi thông báo bus update real-time
@@ -79,12 +80,16 @@ public class BusService {
                 .toList();
 
         for (Trip trip : affectedTrips) {
-            trip.setBus(null); // hoặc có thể đánh dấu là “bus deleted”
+            trip.setBus(null); // Đánh dấu bus đã bị xóa khỏi trip
             tripRepository.save(trip);
             messagingTemplate.convertAndSend("/topic/trips/" + trip.getId(), trip);
         }
 
-        // Gửi thông báo real-time cho client
-        messagingTemplate.convertAndSend("/topic/buses/deleted", id);
+        // 🔥 SỬA CHỮA: Gửi payload có cờ 'action: DELETE' đến topic chính (/topic/buses)
+        Map<String, String> deleteMessage = Map.of(
+                "id", id,
+                "action", "DELETE" // Frontend sẽ nhận và dùng cờ này để xóa item khỏi state
+        );
+        messagingTemplate.convertAndSend("/topic/buses", deleteMessage);
     }
 }

@@ -110,6 +110,18 @@ public class TripService {
 
     // 🔹 Map entity → DTO
     private TripResponse toResponse(Trip trip) {
+        Bus bus = trip.getBus(); // có thể null
+        BusResponse busResponse = null;
+
+        if (bus != null) {
+            busResponse = BusResponse.builder()
+                    .id(bus.getId())
+                    .licensePlate(bus.getLicensePlate())
+                    .type(bus.getType())
+                    .seatCount(bus.getSeatCount())
+                    .build();
+        }
+
         return TripResponse.builder()
                 .id(trip.getId())
                 .departure(trip.getDeparture())
@@ -117,14 +129,10 @@ public class TripService {
                 .departureTime(trip.getDepartureTime())
                 .price(trip.getPrice())
                 .availableSeats(trip.getAvailableSeats())
-                .bus(BusResponse.builder()
-                        .id(trip.getBus().getId())
-                        .licensePlate(trip.getBus().getLicensePlate())
-                        .type(trip.getBus().getType())
-                        .seatCount(trip.getBus().getSeatCount()) // ✅ tổng ghế ở đây
-                        .build())
+                .bus(busResponse) // có thể null nếu trip chưa gán bus
                 .build();
     }
+
 
     public List<TripResponse> filterTrips(FilterTripRequest request) {
         if (request == null) {
