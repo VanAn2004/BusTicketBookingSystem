@@ -30,13 +30,13 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String jwtToken = null;
 
-            // 🧩 1. Lấy token từ header Authorization
+            //  1. Lấy token từ header Authorization
             String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 jwtToken = authorizationHeader.substring(7);
             }
 
-            // 🧩 2. Nếu không có, thử lấy token từ query param (?token=...)
+            //  2. Nếu không có, thử lấy token từ query param (?token=...)
             if (jwtToken == null) {
                 try {
                     String simpConnectMessage = accessor.toNativeHeaderMap().toString();
@@ -55,7 +55,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
                     Jwt jwt = customJwtDecoder.decode(jwtToken);
                     Authentication authentication = jwtAuthenticationConverter.convert(jwt);
                     accessor.setUser(authentication);
-                    log.info("✅ WebSocket authenticated user: {}", authentication.getName());
+                    log.info(" WebSocket authenticated user: {}", authentication.getName());
                 } catch (Exception e) {
                     log.error("Invalid WebSocket JWT: {}", e.getMessage());
                     accessor.setUser(null);
