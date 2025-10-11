@@ -3,12 +3,12 @@ package com.busticket.busticket_bookingsystem.service;
 import com.busticket.busticket_bookingsystem.dto.request.*;
 import com.busticket.busticket_bookingsystem.dto.response.AuthResponse;
 import com.busticket.busticket_bookingsystem.dto.response.IntrospectResponse;
-import com.busticket.busticket_bookingsystem.entity.identity.InvalidatedToken;
+import com.busticket.busticket_bookingsystem.entity.identity.Token;
 import com.busticket.busticket_bookingsystem.entity.identity.ResetToken;
 import com.busticket.busticket_bookingsystem.entity.identity.User;
 import com.busticket.busticket_bookingsystem.exception.AppException;
 import com.busticket.busticket_bookingsystem.exception.ErrorCode;
-import com.busticket.busticket_bookingsystem.repository.InvalidatedTokenRepository;
+import com.busticket.busticket_bookingsystem.repository.TokenRepository;
 import com.busticket.busticket_bookingsystem.repository.ResetTokenRepository;
 import com.busticket.busticket_bookingsystem.repository.UserRepository;
 import com.busticket.busticket_bookingsystem.repository.RoleRepository;
@@ -38,12 +38,10 @@ import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 import com.busticket.busticket_bookingsystem.entity.identity.Role;
-import com.busticket.busticket_bookingsystem.dto.response.UserResponse;
 import com.busticket.busticket_bookingsystem.mapper.UserMapper;
 
 
@@ -55,7 +53,7 @@ import com.busticket.busticket_bookingsystem.mapper.UserMapper;
 public class AuthenticationService {
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
-    InvalidatedTokenRepository tokenRepository;
+    TokenRepository tokenRepository;
     JavaMailSender mailSender;
     ResetTokenRepository resetTokenRepository;
     RoleRepository roleRepository;
@@ -158,8 +156,8 @@ public class AuthenticationService {
         var jit = signJWT.getJWTClaimsSet().getJWTID();
         var expiryTime = signJWT.getJWTClaimsSet().getExpirationTime();
 
-        InvalidatedToken invalidatedToken =
-                InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
+        Token invalidatedToken =
+                Token.builder().id(jit).expiryTime(expiryTime).build();
         tokenRepository.save(invalidatedToken);
         var username = signJWT.getJWTClaimsSet().getSubject();
         var user = userRepository.findById(username).
@@ -174,8 +172,8 @@ public class AuthenticationService {
             var signToken = verifyToken(request.getToken(), true);
             String jit = signToken.getJWTClaimsSet().getJWTID();
             Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-            InvalidatedToken invalidatedToken =
-                    InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
+            Token invalidatedToken =
+                    Token.builder().id(jit).expiryTime(expiryTime).build();
             tokenRepository.save(invalidatedToken);
         } catch (AppException e) {
             log.error("Token already expired");

@@ -12,7 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class InvalidatedToken {
+public class Token {
     @Id
     String id;       // JWT ID
     Date expiryTime;
