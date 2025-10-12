@@ -1,12 +1,11 @@
 package com.busticket.busticket_bookingsystem.configuration.jwt;
 
 
-import com.busticket.busticket_bookingsystem.repository.TokenRepository;
+import com.busticket.busticket_bookingsystem.repository.TokenRepo;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
@@ -27,11 +26,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private  UserDetailsService userDetailsService;
 
-    private TokenRepository tokenRepo;
+    private TokenRepo tokenRepo;
 
     public JwtAuthFilter(@Lazy JwtService jwtService,
                          @Lazy UserDetailsService userDetailsService,
-                         @Lazy TokenRepository tokenRepo) {
+                         @Lazy TokenRepo tokenRepo) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
         this.tokenRepo = tokenRepo;

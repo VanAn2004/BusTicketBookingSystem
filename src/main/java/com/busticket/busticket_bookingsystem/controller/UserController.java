@@ -1,50 +1,82 @@
 package com.busticket.busticket_bookingsystem.controller;
 
-import com.busticket.busticket_bookingsystem.dto.request.CreateUserRequest;
-import com.busticket.busticket_bookingsystem.dto.request.UpdateUserRequest;
-import com.busticket.busticket_bookingsystem.dto.response.ApiResponse;
-import com.busticket.busticket_bookingsystem.dto.response.UserResponse;
-import com.busticket.busticket_bookingsystem.service.UserService;
-import lombok.AccessLevel;
+import com.busticket.busticket_bookingsystem.dto.PermissionDto;
+import com.busticket.busticket_bookingsystem.dto.ScreenPermissionDto;
+import com.busticket.busticket_bookingsystem.dto.response.PageResponse;
+import com.busticket.busticket_bookingsystem.entity.entityUser.User;
+import com.busticket.busticket_bookingsystem.service.inter.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/users")
-@Slf4j
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PACKAGE, makeFinal = true)
-
+@RequestMapping("api/v1/users")
+@Tag(name = "User Controller")
 public class UserController {
-    UserService userService;
 
-    @PostMapping("/registration")
-    public ApiResponse<UserResponse> createUser(@RequestBody CreateUserRequest createUserRequest) {
-        var result = userService.createUser(createUserRequest);
-        return ApiResponse.<UserResponse>builder()
-                .result(result)
-                .build();
+    private final UserService userService;
+
+    @GetMapping("/all")
+    public List<User> getAllUsers() {
+        return userService.findAll();
     }
 
-    @GetMapping("/me")
-    public ApiResponse<UserResponse> getCurrentUser() {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getCurrentUser())
-                .build();
-
+    @GetMapping("/paging")
+    public PageResponse<User> getPageOfUsers(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer limit) {
+        return userService.findAll(page, limit);
     }
 
-    @PutMapping("/update")
-    public ApiResponse<UserResponse> updateUser(@RequestBody UpdateUserRequest request) {
-        var result = userService.updateUser(request);
-        return ApiResponse.<UserResponse>builder().result(result).build();
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUser(@PathVariable String username) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.findByUsername(username));
     }
-    @GetMapping("/user/{userId}")
-    public ApiResponse<UserResponse> getUser(@PathVariable String userId) {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getUserById(userId))
-                .build();
+
+    @GetMapping("/permission/{username}")
+    public PermissionDto getUserPermission(@PathVariable String username) {
+        return userService.getUserPermission(username);
+    }
+
+    @PostMapping("/permission")
+    public PermissionDto updateUserScreenPermission(@RequestBody ScreenPermissionDto screenPermissionDto) {
+        return userService.updateUserScreenPermission(screenPermissionDto);
+    }
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity
+                .status(201)
+                .body(userService.save(user));
+    }
+
+    @PutMapping
+    public ResponseEntity<User> updateUser(@RequestBody User user) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.update(user));
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.delete(username));
+    }
+
+    @GetMapping("/checkDuplicate/{mode}/{username}/{field}/{value}")
+    public ResponseEntity<?> checkDuplicateUserInfo(
+            @PathVariable String mode,
+            @PathVariable String username,
+            @PathVariable String field,
+            @PathVariable String value
+    ) {
+        return ResponseEntity.ok(userService.checkDuplicateUserInfo(mode, username, field, value));
     }
 }

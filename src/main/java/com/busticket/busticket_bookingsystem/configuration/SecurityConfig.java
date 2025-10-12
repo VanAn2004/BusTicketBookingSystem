@@ -1,7 +1,7 @@
 package com.busticket.busticket_bookingsystem.configuration;
 
 import com.busticket.busticket_bookingsystem.configuration.jwt.JwtAuthFilter;
-import com.busticket.busticket_bookingsystem.service.UserService;
+import com.busticket.busticket_bookingsystem.service.inter.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +47,7 @@ public class SecurityConfig {
         return username -> userService.findByUsername(username);
     }
 
-    // Cấu hình CORS
+    // CORS Configuration
     @Bean
     WebMvcConfigurer webMvcConfigurer() {
         return new WebMvcConfigurer() {
@@ -56,37 +56,36 @@ public class SecurityConfig {
                 registry.addMapping("/api/v1/**")
                         .allowedHeaders("*")
                         .allowedOrigins(
-                                "http://localhost:3000",
                                 "http://localhost:8080",
-                                "http://127.0.0.1:3000",
-                                "http://127.0.0.1:8080"
+                                "http://localhost:3000",
+                                "http://localhost:3001"
                         )
                         .allowedMethods("*");
             }
 
+            // Locale Change Interceptor for internationalization
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-                localeChangeInterceptor.setParamName("lang");
+                localeChangeInterceptor.setParamName("lang");  // Parameter to switch language
                 localeChangeInterceptor.setIgnoreInvalidLocale(true);
                 registry.addInterceptor(localeChangeInterceptor);
             }
         };
     }
 
-    // Cấu hình CORS cho Spring Security
+    // Configure CORS for Spring Security
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:8080"
+                "http://localhost:3001"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // Set this to true if you need credentials like cookies or JWT
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/v1/**", configuration);
@@ -97,10 +96,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS using the defined configuration
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow OPTIONS request for CORS pre-flight
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/api/v1/provinces/**",
@@ -110,16 +109,16 @@ public class SecurityConfig {
                                 "/api/v1/vnpay/**",
                                 "/api/v1/locations/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/trips/recommend").permitAll()
+                        .requestMatchers("/api/v1/trips/recommend").permitAll()// Public API endpoints
                         .requestMatchers("/api/v1/notifications/**").authenticated()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger and API documentation
+                        .anyRequest().authenticated() // All other requests require authentication
                 )
                 .sessionManagement(ssm -> ssm
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No session management, API is stateless
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider()) // Use custom authentication provider
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before username/password authentication
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
                         .permitAll()
@@ -133,16 +132,19 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // Authentication Provider with Password Encoder
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        return daoAuthenticationProvider;
     }
 
+    // Authentication Manager Bean
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 }
+

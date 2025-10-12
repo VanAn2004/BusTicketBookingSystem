@@ -76,6 +76,12 @@
             <version>0.11.5</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.1.0</version>
+        </dependency>
+
         <!-- AOP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -83,12 +89,12 @@
         </dependency>
 
         <!-- MongoDB -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
+        <!-- <dependency>
+           <groupId>org.springframework.boot</groupId>
+           <artifactId>spring-boot-starter-data-mongodb</artifactId>
+       </dependency> -->
 
-        <!-- Security -->
+       <!-- Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>

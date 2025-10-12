@@ -1,54 +1,76 @@
 package com.busticket.busticket_bookingsystem.exception;
 
-import com.busticket.busticket_bookingsystem.dto.response.ApiResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
-@Slf4j
-@ControllerAdvice
-@SuppressWarnings("rawtypes")
+@RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final String MIN_ATTRIBUTE = "min";
 
-    @ExceptionHandler(value = RuntimeException.class)
-    ResponseEntity<ApiResponse> handleRuntimeException(final Exception e) {
-        log.error("Unexpected RuntimeException: ", e);
-        ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.builder()
-                        .code(errorCode.getCode())
-                        .message(errorCode.getMessage())
-                        .build());
+    @ExceptionHandler(ObjectNotValidException.class)
+    public ResponseEntity<?> handleException(ObjectNotValidException exception) {
+        return ResponseEntity
+                .badRequest()
+                .body(exception.getErrorsMessages());
     }
 
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse> handleAppException(AppException e) {
-        ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity.status(errorCode.getHttpStatusCode())
-                .body(ApiResponse.builder()
-                        .code(errorCode.getCode())
-                        .message(errorCode.getMessage())
-                        .build());
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiErrorResponse handleResourceNotFound(ResourceNotFoundException exception) {
+        return ApiErrorResponse
+                .builder()
+                .statusCode(404)
+                .dateTime(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                .message(exception.getErrorMessage())
+                .build();
     }
 
-    @ExceptionHandler(value = AccessDeniedException.class)
-    ResponseEntity<ApiResponse> handleAccessDeniedException(AccessDeniedException e) {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-        return ResponseEntity.status(errorCode.getHttpStatusCode())
-                .body(ApiResponse.builder()
-                        .code(errorCode.getCode())
-                        .message(errorCode.getMessage())
-                        .build());
+    @ExceptionHandler(InvalidInputException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse handleInvalidInput(InvalidInputException exception) {
+        return ApiErrorResponse
+                .builder()
+                .statusCode(400)
+                .dateTime(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                .message(exception.getErrorMessage())
+                .build();
     }
 
-
-    private String mapAttribute(String message, Map<String, Object> attributes) {
-        String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
-        return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
+    @ExceptionHandler(ExistingResourceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse handleResourceExisted(ExistingResourceException exception) {
+        return ApiErrorResponse
+                .builder()
+                .statusCode(400)
+                .dateTime(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                .message(exception.getErrorMessage())
+                .build();
     }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse handleUnauthorizedException(UnauthorizedException exception){
+        return ApiErrorResponse
+                .builder()
+                .statusCode(400)
+                .dateTime(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                .message(exception.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(BookingException.class)
+    public ResponseEntity<ApiErrorResponse> handleBookingException(BookingException ex) {
+        ApiErrorResponse errorResponse = ApiErrorResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .dateTime(LocalDateTime.now())
+                .message(ex.getErrorMessage())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 }

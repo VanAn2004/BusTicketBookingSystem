@@ -1,9 +1,8 @@
+/*
 package com.busticket.busticket_bookingsystem.configuration;
 
 import com.busticket.busticket_bookingsystem.entity.identity.Role;
 import com.busticket.busticket_bookingsystem.enums.RoleCode;
-import com.busticket.busticket_bookingsystem.repository.RoleRepository;
-import com.busticket.busticket_bookingsystem.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -92,3 +91,4 @@ public class ApplicationConfiguration {
         };
     }
 }
+ */

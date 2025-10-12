@@ -1,67 +1,114 @@
 package com.busticket.busticket_bookingsystem.controller;
 
-import com.busticket.busticket_bookingsystem.dto.request.CreateTripRequest;
-import com.busticket.busticket_bookingsystem.dto.request.FilterTripRequest;
-import com.busticket.busticket_bookingsystem.dto.response.ApiResponse;
-import com.busticket.busticket_bookingsystem.dto.response.TripResponse;
-import com.busticket.busticket_bookingsystem.service.TripService;
-import lombok.AccessLevel;
+import com.busticket.busticket_bookingsystem.dto.TripRecommendationDTO;
+import com.busticket.busticket_bookingsystem.dto.response.PageResponse;
+import com.busticket.busticket_bookingsystem.entity.operate.Trip;
+import com.busticket.busticket_bookingsystem.service.inter.TripRecommendationService;
+import com.busticket.busticket_bookingsystem.service.inter.TripService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
-@RequestMapping("/trips")
 @RequiredArgsConstructor
-@Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequestMapping("api/v1/trips")
+@Tag(name = "Trip Controller")
 public class TripController {
 
-    TripService tripService;
+    private final TripService tripService;
+    private final TripRecommendationService tripRecommendationService;
+
+    @GetMapping("/all")
+    public List<Trip> getAllTrips() {
+        return tripService.findAll();
+    }
+
+    @GetMapping("/paging")
+    public PageResponse<Trip> getPageOfTrips(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer limit) {
+        return tripService.findAll(page, limit);
+    }
+
+    @GetMapping("/{tripId}")
+    public ResponseEntity<Trip> getTrip(@PathVariable Long tripId) {
+        return ResponseEntity
+                .status(200)
+                .body(tripService.findById(tripId));
+    }
+
+    @GetMapping("/{sourceId}/{destId}/{chosenFromDate}/{chosenToDate}")
+    public List<Trip> findAllTripsBySourceAndDest(@PathVariable Long sourceId,
+                                                  @PathVariable Long destId,
+                                                  @PathVariable String chosenFromDate,
+                                                  @PathVariable String chosenToDate) {
+        return tripService.findAllBySourceAndDest(sourceId, destId, chosenFromDate, chosenToDate);
+    }
+
+
+    @PutMapping("/{tripId}/complete")
+    public ResponseEntity<?> completeTrip(@PathVariable Long tripId) {
+        tripService.completeTrip(tripId);
+        return ResponseEntity.ok("Trip id= " + tripId + " completed and points have been credited to users.");
+    }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
-    public ApiResponse<TripResponse> createTrip(@RequestBody CreateTripRequest request) {
-        var result = tripService.createTrip(request);
-        return ApiResponse.<TripResponse>builder().result(result).build();
+    public ResponseEntity<Trip> createTrip(@RequestBody Trip trip) {
+        return ResponseEntity
+                .status(201)
+                .body(tripService.save(trip));
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
-    public ApiResponse<TripResponse> updateTrip(@PathVariable String id, @RequestBody CreateTripRequest request) {
-        var result = tripService.updateTrip(id, request);
-        return ApiResponse.<TripResponse>builder().result(result).build();
+    @PutMapping
+    public ResponseEntity<Trip> updateTrip(@RequestBody Trip trip) {
+        return ResponseEntity
+                .status(200)
+                .body(tripService.update(trip));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
-    public ApiResponse<Void> deleteTrip(@PathVariable String id) {
-        tripService.deleteTrip(id);
-        return ApiResponse.<Void>builder().message("Trip deleted successfully").build();
+    @DeleteMapping("/{tripId}")
+    public ResponseEntity<?> deleteTrip(@PathVariable Long tripId) {
+        return ResponseEntity
+                .status(200)
+                .body(tripService.delete(tripId));
     }
 
-    @GetMapping("/filter")
-    public ApiResponse<List<TripResponse>> filterTrips(FilterTripRequest request) {
-        var result = tripService.filterTrips(request);
-        return ApiResponse.<List<TripResponse>>builder().result(result).build();
+    @GetMapping("/driver/{driverId}/recent")
+    public List<Trip> getRecentTripsByDriver(
+            @PathVariable Long driverId,
+            @RequestParam String departureDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime departureDateTimeParsed = LocalDateTime.parse(departureDateTime, formatter);
+        return tripService.findRecentTripsByDriverId(driverId,
+                departureDateTimeParsed.minusDays(2).format(formatter),
+                departureDateTimeParsed.format(formatter));
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<TripResponse> getTripById(@PathVariable String id) {
-        var result = tripService.getTripById(id);
-        return ApiResponse.<TripResponse>builder().result(result).build();
-    }
+    @GetMapping("/recommend")
+    public ResponseEntity<List<TripRecommendationDTO>> getRecommendedTrips(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    @GetMapping
-    public ApiResponse<List<TripResponse>> getAllTrips() {
-        var result = tripService.getAllTrips();
-        return ApiResponse.<List<TripResponse>>builder()
-                .result(result)
-                .build();
+        if (authentication == null || !(authentication instanceof UsernamePasswordAuthenticationToken)) {
+            List<TripRecommendationDTO> recommendations = tripRecommendationService.getAvailableTrips();
+            return ResponseEntity.ok(recommendations);
+        }
+
+        String username = authentication.getName();
+        List<TripRecommendationDTO> recommendations = tripRecommendationService.getRecommendedTrips(username);
+
+        return ResponseEntity.ok(recommendations);
     }
 
 }
