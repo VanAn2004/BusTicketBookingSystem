@@ -4,7 +4,6 @@ import com.busticket.busticket_bookingsystem.dto.request.CreateUserRequest;
 import com.busticket.busticket_bookingsystem.dto.request.UpdateUserRequest;
 import com.busticket.busticket_bookingsystem.dto.response.UserResponse;
 import com.busticket.busticket_bookingsystem.entity.identity.Role;
-import com.busticket.busticket_bookingsystem.entity.identity.User;
 import com.busticket.busticket_bookingsystem.exception.AppException;
 import com.busticket.busticket_bookingsystem.exception.ErrorCode;
 import com.busticket.busticket_bookingsystem.mapper.UserMapper;

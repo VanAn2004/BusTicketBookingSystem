@@ -1,6 +1,6 @@
 package com.busticket.busticket_bookingsystem.service;
 
-import com.busticket.busticket_bookingsystem.entity.Trip;
+import com.busticket.busticket_bookingsystem.entity.operate.Trip;
 import com.busticket.busticket_bookingsystem.entity.booking.Booking;
 import com.busticket.busticket_bookingsystem.repository.BookingRepository;
 import com.busticket.busticket_bookingsystem.repository.TripRepository;

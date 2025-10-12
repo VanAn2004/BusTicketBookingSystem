@@ -1,7 +1,7 @@
 package com.busticket.busticket_bookingsystem.service;
 
-import com.busticket.busticket_bookingsystem.entity.Bus;
-import com.busticket.busticket_bookingsystem.entity.Trip;
+import com.busticket.busticket_bookingsystem.entity.operate.Coach;
+import com.busticket.busticket_bookingsystem.entity.operate.Trip;
 import com.busticket.busticket_bookingsystem.repository.BusRepository;
 import com.busticket.busticket_bookingsystem.repository.TripRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,31 +19,31 @@ public class BusService {
     private final SimpMessagingTemplate messagingTemplate;
 
     // ✅ Tạo bus mới + gửi real-time
-    public Bus createBus(Bus bus) {
-        Bus saved = busRepository.save(bus);
+    public Coach createBus(Coach bus) {
+        Coach saved = busRepository.save(bus);
         messagingTemplate.convertAndSend("/topic/buses", saved);
         return saved;
     }
 
     // ✅ Lấy tất cả bus
-    public List<Bus> getAllBuses() {
+    public List<Coach> getAllBuses() {
         return busRepository.findAll();
     }
 
     // ✅ Lấy bus theo id
-    public Bus getBusById(String id) {
+    public Coach getBusById(String id) {
         return busRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bus not found with id: " + id));
     }
 
     // ✅ Cập nhật bus + đồng bộ trip + gửi real-time
-    public Bus updateBus(String id, Bus busRequest) {
-        Bus existing = getBusById(id);
+    public Coach updateBus(String id, Coach busRequest) {
+        Coach existing = getBusById(id);
         existing.setLicensePlate(busRequest.getLicensePlate());
         existing.setType(busRequest.getType());
         existing.setSeatCount(busRequest.getSeatCount());
 
-        Bus updated = busRepository.save(existing);
+        Coach updated = busRepository.save(existing);
 
         // 🔹 Đồng bộ lại tất cả trip dùng bus này
         List<Trip> trips = tripRepository.findAll().stream()

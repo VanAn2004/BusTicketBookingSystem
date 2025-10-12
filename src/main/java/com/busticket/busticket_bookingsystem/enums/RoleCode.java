@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum RoleEnum {
+public enum RoleCode {
 
     CUSTOMER("CUSTOMER"),
     OPERATOR("OPERATOR"),

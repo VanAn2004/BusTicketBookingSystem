@@ -1,6 +1,6 @@
 package com.busticket.busticket_bookingsystem.repository;
 
-import com.busticket.busticket_bookingsystem.entity.identity.Token;
+import com.busticket.busticket_bookingsystem.entity.entityUser.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

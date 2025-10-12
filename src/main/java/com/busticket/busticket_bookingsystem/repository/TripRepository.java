@@ -1,6 +1,6 @@
 package com.busticket.busticket_bookingsystem.repository;
 
-import com.busticket.busticket_bookingsystem.entity.Trip;
+import com.busticket.busticket_bookingsystem.entity.operate.Trip;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

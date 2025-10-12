@@ -4,7 +4,7 @@ import com.busticket.busticket_bookingsystem.dto.request.CreateBusRequest;
 import com.busticket.busticket_bookingsystem.dto.request.UpdateBusRequest;
 import com.busticket.busticket_bookingsystem.dto.response.ApiResponse;
 import com.busticket.busticket_bookingsystem.dto.response.BusResponse;
-import com.busticket.busticket_bookingsystem.entity.Bus;
+import com.busticket.busticket_bookingsystem.entity.operate.Coach;
 import com.busticket.busticket_bookingsystem.service.BusService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +27,13 @@ public class BusController {
     @PostMapping
     @PreAuthorize("hasAnyRole('OPERATOR','ADMIN')")
     public ApiResponse<BusResponse> createBus(@Valid @RequestBody CreateBusRequest request) {
-        Bus bus = Bus.builder()
+        Coach bus = Coach.builder()
                 .licensePlate(request.getLicensePlate())
                 .type(request.getType())
                 .seatCount(request.getSeatCount())
                 .build();
 
-        Bus saved = busService.createBus(bus);
+        Coach saved = busService.createBus(bus);
         return ApiResponse.<BusResponse>builder()
                 .result(toResponse(saved))
                 .build();
@@ -63,13 +63,13 @@ public class BusController {
             @PathVariable String id,
             @Valid @RequestBody UpdateBusRequest request
     ) {
-        Bus updateRequest = Bus.builder()
+        Coach updateRequest = Coach.builder()
                 .licensePlate(request.getLicensePlate())
                 .type(request.getType())
                 .seatCount(request.getSeatCount())
                 .build();
 
-        Bus updated = busService.updateBus(id, updateRequest);
+        Coach updated = busService.updateBus(id, updateRequest);
         return ApiResponse.<BusResponse>builder()
                 .result(toResponse(updated))
                 .build();
@@ -83,7 +83,7 @@ public class BusController {
                 .build();
     }
 
-    private BusResponse toResponse(Bus bus) {
+    private BusResponse toResponse(Coach bus) {
         return BusResponse.builder()
                 .id(bus.getId())
                 .licensePlate(bus.getLicensePlate())

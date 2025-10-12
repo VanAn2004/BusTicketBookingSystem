@@ -1,7 +1,6 @@
 package com.busticket.busticket_bookingsystem.service;
 
 import com.busticket.busticket_bookingsystem.dto.response.UserResponse;
-import com.busticket.busticket_bookingsystem.entity.identity.User;
 import com.busticket.busticket_bookingsystem.exception.AppException;
 import com.busticket.busticket_bookingsystem.exception.ErrorCode;
 import com.busticket.busticket_bookingsystem.mapper.UserMapper;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service

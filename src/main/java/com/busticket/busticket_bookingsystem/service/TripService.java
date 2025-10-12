@@ -3,9 +3,8 @@ package com.busticket.busticket_bookingsystem.service;
 import com.busticket.busticket_bookingsystem.dto.request.CreateTripRequest;
 import com.busticket.busticket_bookingsystem.dto.response.BusResponse;
 import com.busticket.busticket_bookingsystem.dto.response.TripResponse;
-import com.busticket.busticket_bookingsystem.entity.Bus;
-import com.busticket.busticket_bookingsystem.entity.Seat;
-import com.busticket.busticket_bookingsystem.entity.Trip;
+import com.busticket.busticket_bookingsystem.entity.operate.Coach;
+import com.busticket.busticket_bookingsystem.entity.operate.Trip;
 import com.busticket.busticket_bookingsystem.repository.BusRepository;
 import com.busticket.busticket_bookingsystem.repository.SeatRepository;
 import com.busticket.busticket_bookingsystem.repository.TripRepository;
@@ -28,7 +27,7 @@ public class TripService {
 
     // 🔹 Tạo trip mới
     public TripResponse createTrip(CreateTripRequest request) {
-        Bus bus = busRepository.findById(request.getBusId())
+        Coach bus = busRepository.findById(request.getBusId())
                 .orElseThrow(() -> new RuntimeException("Bus not found"));
 
         // Tạo danh sách ghế mặc định
@@ -64,7 +63,7 @@ public class TripService {
         Trip trip = tripRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
 
-        Bus bus = busRepository.findById(request.getBusId())
+        Coach bus = busRepository.findById(request.getBusId())
                 .orElseThrow(() -> new RuntimeException("Bus not found"));
 
         trip.setDeparture(request.getDeparture());
