@@ -1,8 +1,9 @@
+/*
 package com.busticket.busticket_bookingsystem.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.busticket.busticket_bookingsystem.dto.response.ApiResponse;
 import com.busticket.busticket_bookingsystem.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,3 +31,5 @@ public class JWTAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.flushBuffer();
     }
 }
+
+ */

@@ -1,114 +1,155 @@
 package com.busticket.busticket_bookingsystem.configuration;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
+import com.busticket.busticket_bookingsystem.configuration.jwt.JwtAuthFilter;
+import com.busticket.busticket_bookingsystem.service.inter.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
-import java.io.IOException;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_ENDPOINTS = {
-            "/users/registration",
-            "/auth/token",
-            "/auth/introspect",
-            "/auth/logout",
-            "/auth/refresh",
-            "/auth/forgot-password",
-            "/auth/reset-password/**",
-            "/room/**",
-            "/auth/oauth/**",
-
-            "/ws/**"
-    };
-
-    private final CustomJwtDecoder customJwtDecoder;
-
-    public SecurityConfig(CustomJwtDecoder customJwtDecoder) {
-        this.customJwtDecoder = customJwtDecoder;
-    }
+    private final JwtAuthFilter jwtAuthFilter;
+    private final UserService userService;
+    private final LogoutHandler logoutHandler;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(PUBLIC_ENDPOINTS))
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwtConfigurer -> jwtConfigurer
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                        .authenticationEntryPoint(new JWTAuthenticationEntryPoint()))
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
-        // ✅ Thêm filter để bỏ COOP/COEP, giúp Google/Facebook popup hoạt động
-        httpSecurity.addFilterBefore(removeCrossOriginIsolationHeaders(), org.springframework.web.filter.CorsFilter.class);
-
-        return httpSecurity.build();
+    UserDetailsService userDetailsService() {
+        return username -> userService.findByUsername(username);
     }
 
-    // ✅ Cho phép React (https://localhost:3000, 5173, v.v.)
+    // CORS Configuration
     @Bean
-    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("https://localhost:*", "http://localhost:*",
-                "https://192.168.1.11:*", "https://192.168.138.1:*", "https://192.168.220.1:*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
-        config.setAllowCredentials(true);
-        config.setExposedHeaders(List.of("Authorization"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-
-    // Xóa header COOP/COEP để cho phép window.postMessage hoạt động
-    @Bean
-    public OncePerRequestFilter removeCrossOriginIsolationHeaders() {
-        return new OncePerRequestFilter() {
+    WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
             @Override
-            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-                    throws ServletException, IOException {
-                response.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
-                response.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-                filterChain.doFilter(request, response);
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/v1/**")
+                        .allowedHeaders("*")
+                        .allowedOrigins(
+                                "http://localhost:8080",
+                                "http://localhost:3000",
+                                "http://localhost:3001",
+                                "http://192.168.1.3:3000",
+                                "http://10.12.172.112:3001"
+                        )
+                        .allowedMethods("*");
+            }
+
+            // Locale Change Interceptor for internationalization
+            @Override
+            public void addInterceptors(InterceptorRegistry registry) {
+                LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+                localeChangeInterceptor.setParamName("lang");  // Parameter to switch language
+                localeChangeInterceptor.setIgnoreInvalidLocale(true);
+                registry.addInterceptor(localeChangeInterceptor);
             }
         };
     }
 
+    // Configure CORS for Spring Security
     @Bean
-    JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthorityPrefix("");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return converter;
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://localhost:3001",
+                "http://192.168.1.3:3000",
+                "http://10.12.172.112:3001"
+                //"http://**"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // Set this to true if you need credentials like cookies or JWT
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/v1/**", configuration);
+        return source;
     }
 
+    // Security Filter Chain
     @Bean
-    PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS using the defined configuration
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for API
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow OPTIONS request for CORS pre-flight
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/provinces/**",
+                                "/api/v1/bookings/**",
+                                "/api/v1/trips/**",
+                                "/api/v1/language/**",
+                                "/api/v1/vnpay/**",
+                                "/api/v1/locations/**"
+                        ).permitAll()
+                        .requestMatchers("/api/v1/trips/recommend").permitAll()// Public API endpoints
+                        .requestMatchers("/api/v1/notifications/**").authenticated()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger and API documentation
+                        .anyRequest().authenticated() // All other requests require authentication
+                )
+                .sessionManagement(ssm -> ssm
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No session management, API is stateless
+                )
+                .authenticationProvider(authenticationProvider()) // Use custom authentication provider
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // Add JWT filter before username/password authentication
+                .logout(logout -> logout
+                        .logoutUrl("/api/v1/auth/logout")
+                        .permitAll()
+                        .addLogoutHandler(logoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            SecurityContextHolder.clearContext();
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.setHeader("Access-Control-Allow-Origin", "*");
+                        })
+                );
+        return http.build();
+    }
+
+    // Authentication Provider with Password Encoder
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        return daoAuthenticationProvider;
+    }
+
+    // Authentication Manager Bean
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
 }
+

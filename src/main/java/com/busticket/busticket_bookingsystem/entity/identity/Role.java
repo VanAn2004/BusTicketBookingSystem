@@ -1,22 +1,34 @@
 package com.busticket.busticket_bookingsystem.entity.identity;
 
+import com.busticket.busticket_bookingsystem.enums.RoleCode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "roles")
+import java.util.List;
+
+@Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = false)
 public class Role {
+
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
 
-    @Indexed(unique = true)   // đảm bảo không trùng name
-    private String name;
+    @Enumerated(EnumType.STRING)
+    RoleCode roleCode;
 
-    private String description;
+    String roleName;
+
+    String description;
+
+    @OneToMany(mappedBy = "role")
+    @JsonIgnore
+    List<UserPermission> permissions;
+
 }

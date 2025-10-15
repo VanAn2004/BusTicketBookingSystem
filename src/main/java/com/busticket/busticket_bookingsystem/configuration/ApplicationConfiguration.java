@@ -1,10 +1,8 @@
+/*
 package com.busticket.busticket_bookingsystem.configuration;
 
 import com.busticket.busticket_bookingsystem.entity.identity.Role;
-import com.busticket.busticket_bookingsystem.entity.identity.User;
-import com.busticket.busticket_bookingsystem.enums.RoleEnum;
-import com.busticket.busticket_bookingsystem.repository.RoleRepository;
-import com.busticket.busticket_bookingsystem.repository.UserRepository;
+import com.busticket.busticket_bookingsystem.enums.RoleCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
@@ -25,26 +23,26 @@ public class ApplicationConfiguration {
     ApplicationRunner runner(UserRepository userRepository) {
         return args -> {
             // Tạo role mặc định (chỉ tạo nếu chưa có)
-            Role adminRole = roleRepository.findByName(RoleEnum.ADMIN.name())
+            Role adminRole = roleRepository.findByName(RoleCode.ADMIN.name())
                     .orElseGet(() -> roleRepository.save(
                             Role.builder()
-                                    .name(RoleEnum.ADMIN.name())
+                                    .name(RoleCode.ADMIN.name())
                                     .description("admin Role")
                                     .build()
                     ));
 
-            Role customerRole = roleRepository.findByName(RoleEnum.CUSTOMER.name())
+            Role customerRole = roleRepository.findByName(RoleCode.CUSTOMER.name())
                     .orElseGet(() -> roleRepository.save(
                             Role.builder()
-                                    .name(RoleEnum.CUSTOMER.name())
+                                    .name(RoleCode.CUSTOMER.name())
                                     .description("customer Role")
                                     .build()
                     ));
 
-            Role operatorRole = roleRepository.findByName(RoleEnum.OPERATOR.name())
+            Role operatorRole = roleRepository.findByName(RoleCode.OPERATOR.name())
                     .orElseGet(() -> roleRepository.save(
                             Role.builder()
-                                    .name(RoleEnum.OPERATOR.name())
+                                    .name(RoleCode.OPERATOR.name())
                                     .description("operator Role")
                                     .build()
                     ));
@@ -93,3 +91,4 @@ public class ApplicationConfiguration {
         };
     }
 }
+ */
