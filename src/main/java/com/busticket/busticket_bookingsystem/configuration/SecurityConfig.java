@@ -58,7 +58,9 @@ public class SecurityConfig {
                         .allowedOrigins(
                                 "http://localhost:8080",
                                 "http://localhost:3000",
-                                "http://localhost:3001"
+                                "http://localhost:3001",
+                                "http://192.168.1.3:3000",
+                                "http://10.12.172.112:3001"
                         )
                         .allowedMethods("*");
             }
@@ -81,7 +83,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "http://localhost:3001"
+                "http://localhost:3001",
+                "http://192.168.1.3:3000",
+                "http://10.12.172.112:3001"
+                //"http://**"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));

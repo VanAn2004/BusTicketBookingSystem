@@ -59,12 +59,12 @@ public class BusTicketBookingSystemApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
- //         createUsers();
-//        createBuses();
-//        createDiscounts();
-//        createDriver();
-//        createTrips();
-//        createBookings();
+      //createUsers();
+       //createBuses();
+        //createDiscounts();
+       //createDriver();
+        //createTrips();
+        //createBookings();
 	}
 
 	private void createUsers() {
@@ -154,7 +154,7 @@ public class BusTicketBookingSystemApplication implements CommandLineRunner {
 							.driver(driverRepo.findById(1L).get())
 							.coach(coachRepo.findById(1L).get())
 							.source(provinceRepo.findById(50L).get()) // hcm
-							.destination(provinceRepo.findById(38L).get()) // ninh thuan
+							.destination(provinceRepo.findById(38L).get()) // gia lai
 							.departureDateTime(LocalDateTime.of(2023, 8, 15, 5 + i, 0))
 							.build()
 			);
