@@ -1,5 +1,4 @@
-package com.busticket.busticket_bookingsystem.service;//package com.ticketbooking.service;
-//
+package com.busticket.busticket_bookingsystem.service;
 //import com.ticketbooking.dto.EmailMessage;
 //import com.ticketbooking.model.*;
 //import com.ticketbooking.model.enumType.PaymentStatus;
