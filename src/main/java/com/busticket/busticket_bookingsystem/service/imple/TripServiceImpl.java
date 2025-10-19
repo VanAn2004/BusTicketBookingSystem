@@ -165,6 +165,7 @@ public class TripServiceImpl implements TripService {
     @Transactional
     @CacheEvict(cacheNames = {"trips", "trips_paging"}, allEntries = true)
     public Trip save(Trip trip) {
+        trip.setId(null);
         // Kiểm tra địa điểm đón và trả không được trùng
         if (trip.getPickUpLocation().getId().equals(trip.getDropOffLocation().getId())) {
             throw new InvalidInputException("Pick-up location and drop-off location cannot be the same");

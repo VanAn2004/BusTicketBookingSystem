@@ -55,6 +55,7 @@ public class CoachServiceImpl implements CoachService {
     @Transactional
     @CacheEvict(cacheNames = {"coaches", "coaches_paging"}, allEntries = true)
     public Coach save(Coach coach) {
+        coach.setId(null);
         coachValidator.validate(coach);
         if (!checkDuplicateCoachInfo("ADD", coach.getId(), "name", coach.getName())) {
             throw new ExistingResourceException("Name<%s> is already exist".formatted(coach.getName()));

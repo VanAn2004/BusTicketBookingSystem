@@ -47,6 +47,7 @@ public class TripLogServiceImpl implements TripLogService {
     @Override
     @CacheEvict(cacheNames = "tripLogs_paging", allEntries = true)
     public TripLog save(TripLog tripLog) {
+        tripLog.setId(null);
         String currentUsername = getCurrentUsername();
         if (tripLog.getCreatedBy() == null) {
             User createdByUser = new User();

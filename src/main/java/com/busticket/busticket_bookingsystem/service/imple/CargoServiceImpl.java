@@ -53,6 +53,7 @@ public class CargoServiceImpl implements CargoService {
     @Transactional
     @CacheEvict(cacheNames = {"cargos", "cargos_paging"}, allEntries = true)
     public Cargo save(Cargo cargo) {
+        cargo.setId(null);
         objectValidator.validate(cargo);
         if(!checkDuplicateDiscountInfo("ADD", cargo.getId(), "name", cargo.getName())){
             throw new ResourceNotFoundException("Cargo Name <%s> is already exist".formatted(cargo.getName()));

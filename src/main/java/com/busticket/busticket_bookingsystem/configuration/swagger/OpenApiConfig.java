@@ -21,7 +21,7 @@ public class OpenApiConfig {
     public GroupedOpenApi publicApi(@Value("${openapi.service.api-docs}") String apiDocs) {
         return GroupedOpenApi.builder()
                 .group(apiDocs) // /v3/api-docs/api-service
-                .packagesToScan("com.ticketbooking.controller")
+                .packagesToScan("com.busticket.busticket_bookingsystem.controller")
                 .build();
     }
 

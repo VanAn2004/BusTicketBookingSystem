@@ -61,6 +61,7 @@ public class LocationServiceImpl implements LocationService {
     @Transactional
     @CacheEvict(cacheNames = {"locations", "locations_paging"}, allEntries = true)
     public Location saveLocation(Location location) {
+        location.setId(null);
         objectValidator.validate(location);
         if (!checkDuplicateLocationInfo("ADD", location.getId(), "address", location.getAddress())) {
             throw new ExistingResourceException("Location address <%s> is already exist".formatted(location.getAddress()));
